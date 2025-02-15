@@ -1,0 +1,79 @@
+[gd_scene load_steps=6 format=3 uid="uid://dv7q5sygx8g6s"]
+
+[ext_resource type="AudioStream" uid="uid://cdkg0ixcltarh" path="res://assets/sounds/explosion.wav" id="1_wpo56"]
+
+[sub_resource type="GDScript" id="GDScript_au8co"]
+script/source = "extends Area2D
+
+@onready var timer = $Timer
+@onready var animation_player = $AnimationPlayer
+
+func _on_body_entered(body):
+	animation_player.play(\"dying\")
+	print(\"YOU DIED!\")
+	Engine.time_scale = 0.5
+	body.get_node(\"CollisionShape2D\").queue_free()
+	timer.start()
+
+
+func _on_timer_timeout():
+	Engine.time_scale = 1
+	get_tree().reload_current_scene()
+"
+
+[sub_resource type="Animation" id="Animation_cc2rw"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("DyingSound:playing")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_3rqg6"]
+resource_name = "dying"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("DyingSound:playing")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_mbvx5"]
+_data = {
+"RESET": SubResource("Animation_cc2rw"),
+"dying": SubResource("Animation_3rqg6")
+}
+
+[node name="Killzone" type="Area2D"]
+collision_mask = 2
+script = SubResource("GDScript_au8co")
+
+[node name="Timer" type="Timer" parent="."]
+wait_time = 0.5
+one_shot = true
+
+[node name="DyingSound" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("1_wpo56")
+bus = &"SoundEffects"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_mbvx5")
+}
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
